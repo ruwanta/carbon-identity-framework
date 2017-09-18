@@ -25,10 +25,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ExtensionHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 
@@ -58,10 +57,11 @@ public abstract class AbstractRequestCoordinator implements RequestCoordinator {
         }
         String tenantDomain = context.getTenantDomain();
 
-        SequenceLoader sequenceBuilder = FrameworkServiceDataHolder.getInstance().getSequenceLoader();
-        if (sequenceBuilder != null) {
+        SequenceLoader sequenceLoader = ExtensionHolder.getInstance()
+                .getExtension(FrameworkConstants.Config.QNAME_SEQUENCE_LOADER);
+        if (sequenceLoader != null) {
             ServiceProvider serviceProvider = getServiceProvider(requestType, issuer, tenantDomain);
-            return sequenceBuilder.getSequenceConfig(context, parameterMap, serviceProvider);
+            return getSequenceConfig(context, parameterMap, serviceProvider, sequenceLoader);
         } else {
             //Backward compatibility, Using the deprecated method.
             //TODO: Need to remove the dependency to this.
@@ -71,12 +71,26 @@ public abstract class AbstractRequestCoordinator implements RequestCoordinator {
     }
 
     /**
+     * Extension to allow changes in sequence config based on request.
+     * @param context
+     * @param parameterMap
+     * @param serviceProvider
+     * @param sequenceLoader
+     * @return
+     * @throws FrameworkException
+     */
+    protected SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
+            ServiceProvider serviceProvider, SequenceLoader sequenceLoader) throws FrameworkException {
+        return sequenceLoader.getSequenceConfig(context, parameterMap, serviceProvider);
+    }
+
+    /**
      * Returns the service provider form persistence layer.
      */
     protected ServiceProvider getServiceProvider(String reqType, String clientId, String tenantDomain)
             throws FrameworkException {
 
-        ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+        ApplicationManagementService applicationManagementService = getApplicationManagementService();
 
         // special case for OpenID Connect, these clients are stored as OAuth2 clients
         if ("oidc".equals(reqType)) {
@@ -86,11 +100,22 @@ public abstract class AbstractRequestCoordinator implements RequestCoordinator {
         ServiceProvider serviceProvider;
 
         try {
-            serviceProvider = appInfo.getServiceProviderByClientId(clientId, reqType, tenantDomain);
+            serviceProvider = applicationManagementService
+                    .getServiceProviderByClientId(clientId, reqType, tenantDomain);
         } catch (IdentityApplicationManagementException e) {
-            throw new FrameworkException("Error occurred while retrieving service provider for client ID: " + clientId
-                    + " and tenant: " + tenantDomain, e);
+            throw new FrameworkException(
+                    "Error occurred while retrieving service provider for client ID: " + clientId + " and tenant: "
+                            + tenantDomain, e);
         }
         return serviceProvider;
+    }
+
+    /**
+     * Returns the Application Management service.
+     * @return
+     */
+    protected ApplicationManagementService getApplicationManagementService() {
+        ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
+        return applicationManagementService;
     }
 }

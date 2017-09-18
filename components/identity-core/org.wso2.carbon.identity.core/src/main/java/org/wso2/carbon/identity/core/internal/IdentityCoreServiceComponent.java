@@ -211,6 +211,7 @@ public class IdentityCoreServiceComponent {
      */
     protected void setRealmService(RealmService realmService) {
         IdentityTenantUtil.setRealmService(realmService);
+        ServiceReferenceHolder.getInstance().setRealmService(realmService);
         defaultKeystoreManagerExtension.setRealmService(realmService);
     }
 

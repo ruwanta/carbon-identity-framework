@@ -30,6 +30,7 @@ import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.internal.ServiceReferenceHolder;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -236,7 +237,7 @@ public class IdentityTenantUtil {
 
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
         try {
-            tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            tenantId = getRealmServiceInternal().getTenantManager().getTenantId(tenantDomain);
         } catch (UserStoreException e) {
             // Ideally user.core should be throwing an unchecked exception, in which case no need to wrap at this
             // level once more without adding any valuable contextual information. Because we don't have exception
@@ -257,7 +258,7 @@ public class IdentityTenantUtil {
 
         String tenantDomain = null;
         try {
-            tenantDomain = realmService.getTenantManager().getDomain(tenantId);
+            tenantDomain = getRealmServiceInternal().getTenantManager().getDomain(tenantId);
         } catch (UserStoreException e) {
             // Ideally user.core should be throwing an unchecked exception, in which case no need to wrap at this
             // level once more without adding any valuable contextual information. Because we don't have exception
@@ -299,5 +300,13 @@ public class IdentityTenantUtil {
         } else {
             return tenantId;
         }
+    }
+
+    private static RealmService getRealmServiceInternal() {
+        RealmService result = ServiceReferenceHolder.getInstance().getRealmService();
+        if(result == null) {
+            result = realmService;
+        }
+        return result;
     }
 }
