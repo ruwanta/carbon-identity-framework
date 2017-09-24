@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
@@ -40,12 +42,10 @@ public class JsGraphBuilderFactory {
     private JsFunctionRegistryImpl jsFunctionRegistry;
     private ScriptEngine engine = null;
 
-    private static final Log jsLog = LogFactory
-            .getLog(JsGraphBuilder.class.getPackage().getName() + ".JsBasedSequence");
+    private static final JsLogger jsLog = new JsLogger();
 
     public void init() {
-        engine = new ScriptEngineManager().getEngineByName("nashorn");
-        engine.put("log", jsLog); //TODO: Depricated. Remove log.x()
+        engine = new NashornScriptEngineFactory().getScriptEngine("-strict", "--no-java");
         engine.put("Log", jsLog);
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
         engine.put("selectAcrFrom", (SelectOneFunction) selectAcrFromFunction::evaluate);

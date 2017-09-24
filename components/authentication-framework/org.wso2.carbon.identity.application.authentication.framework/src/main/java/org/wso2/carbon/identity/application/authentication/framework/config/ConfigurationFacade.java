@@ -43,7 +43,6 @@ public class ConfigurationFacade {
     private static final Log log = LogFactory.getLog(ConfigurationFacade.class);
     private UIBasedConfigurationLoader uiBasedConfigurationLoader;
     private static volatile ConfigurationFacade instance;
-    private SequenceLoader sequenceBuilder;
 
     public ConfigurationFacade() {
         // Read the default config from the files

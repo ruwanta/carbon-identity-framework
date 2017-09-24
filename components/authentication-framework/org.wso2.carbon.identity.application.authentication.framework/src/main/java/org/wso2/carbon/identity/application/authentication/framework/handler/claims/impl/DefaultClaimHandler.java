@@ -371,8 +371,11 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (requestedClaimMappings == null || requestedClaimMappings.isEmpty()) {
             if (log.isDebugEnabled()) {
                 String spName = context.getServiceProviderName();
-                String spTenantDomain = appConfig.getServiceProvider().getOwner().getTenantDomain();
-                log.debug("No claims requested by the service provider: " + spName + ", tenantDomain: " + spTenantDomain);
+                String spTenantDomain = appConfig.getServiceProvider().getOwner() == null ?
+                        null :
+                        appConfig.getServiceProvider().getOwner().getTenantDomain();
+                log.debug(
+                        "No claims requested by the service provider: " + spName + ", tenantDomain: " + spTenantDomain);
             }
             return new HashMap<>();
         }

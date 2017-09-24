@@ -36,10 +36,12 @@ public class SelectAcrFromFunction implements SelectOneFunction {
             }
             return null;
         }
+        String acr = null;
         if (possibleOutcomes != null) {
-            return selectBestOutcome(acrListRequested, possibleOutcomes);
+            acr = selectBestOutcome(acrListRequested, possibleOutcomes);
         }
-        return null;
+        context.setSelectedAcr(acr);
+        return acr;
     }
 
     private String selectBestOutcome(List<String> acrListRequested, String[] possibleOutcomes) {

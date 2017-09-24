@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
+import java.util.Map;
+import java.util.function.Consumer;
+
 /**
  * Registry to add or remove custom functions implemented in Java to javascript based execution engine.
  */
@@ -27,7 +30,7 @@ public interface JsFunctionRegistry {
      * Identifies the user-programmable subsystem.
      */
     enum Subsystem {
-        SEQUENCE_HANDLER
+        HTTP_IN_HANDLER, SEQUENCE_HANDLER
     }
 
     /**
@@ -46,4 +49,11 @@ public interface JsFunctionRegistry {
      * @param functionName
      */
     void deRegister(Subsystem subsystem, String functionName);
+
+    /**
+     * Streams the functions in the given subsystem.
+     * @param subsystem
+     * @param consumer
+     */
+    public void stream(Subsystem subsystem, Consumer<Map.Entry<String, Object>> consumer);
 }

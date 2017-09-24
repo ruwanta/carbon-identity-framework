@@ -16,8 +16,8 @@
   ~ under the License.
   -->
 <ServiceProvider>
-    <ApplicationID>1</ApplicationID>
-    <ApplicationName>default</ApplicationName>
+    <ApplicationID>1000</ApplicationID>
+    <ApplicationName>js-app-1000</ApplicationName>
     <Description>Default Service Provider</Description>
     <InboundAuthenticationConfig>
         <InboundAuthenticationRequestConfigs>
@@ -61,7 +61,7 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="application/javascript"><![CDATA[
+        <AuthenticationScript language="application/javascript"><![CDATA[
 function(context) {
 	executeStep({id :'0'});
 	makeDecisionWith(function(c) {return 's';})

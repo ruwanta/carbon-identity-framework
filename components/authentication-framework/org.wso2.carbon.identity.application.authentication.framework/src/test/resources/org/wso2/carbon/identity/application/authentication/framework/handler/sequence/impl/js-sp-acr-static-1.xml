@@ -16,8 +16,8 @@
   ~ under the License.
   -->
 <ServiceProvider>
-    <ApplicationID>1</ApplicationID>
-    <ApplicationName>default</ApplicationName>
+    <ApplicationID>1000</ApplicationID>
+    <ApplicationName>js-app-1000</ApplicationName>
     <Description>Default Service Provider</Description>
     <InboundAuthenticationConfig>
         <InboundAuthenticationRequestConfigs>
@@ -79,11 +79,11 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="application/javascript"><![CDATA[
+        <AuthenticationScript language="application/javascript"><![CDATA[
 
 function(context) {
     var acr = selectAcrFrom(context, ["acr1", "acr2"]);
-    log.debug("ACR selected "+acr);
+    Log.debug("ACR selected "+acr);
     
     switch(acr) {
         case "acr1" : executeStep({id :'0'}); break;

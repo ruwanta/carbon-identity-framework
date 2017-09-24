@@ -25,12 +25,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -65,7 +63,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
     @Override
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
-                                            ServiceProvider serviceProvider) throws FrameworkException {
+            ServiceProvider serviceProvider) throws FrameworkException {
 
         String tenantDomain = context.getTenantDomain();
 
@@ -84,19 +82,26 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
         //Use script based evaluation if script is present.
         if (localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig() != null) {
-            //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
-            Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
-            sequenceConfig.getStepMap().clear();
+            if (jsGraphBuilderFactory != null) {
 
-            JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, originalStepConfigMap);
-            jsGraphBuilder.setJsFunctionRegistry(jsFunctionRegistrar);
-            context.setServiceProviderName(serviceProvider.getApplicationName());
+                //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
+                Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
+                sequenceConfig.getStepMap().clear();
 
-            AuthenticationGraph graph = jsGraphBuilder
-                    .createWith(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().getContent())
-                    .build();
-            sequenceConfig.setAuthenticationGraph(graph);
-            graph.setStepMap(originalStepConfigMap);
+                JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, originalStepConfigMap);
+                jsGraphBuilder.setJsFunctionRegistry(jsFunctionRegistrar);
+                context.setServiceProviderName(serviceProvider.getApplicationName());
+
+                AuthenticationGraph graph = jsGraphBuilder
+                        .createWith(localAndOutboundAuthenticationConfig.getAuthenticationScriptConfig().getContent())
+                        .build();
+                sequenceConfig.setAuthenticationGraph(graph);
+                graph.setStepMap(originalStepConfigMap);
+            } else {
+                log.error("Service Provider has script of with language: " + localAndOutboundAuthenticationConfig
+                        .getAuthenticationScriptConfig().getLanguage()
+                        + ". But Script based Builder Factory is not configured. Script will not be evaluated. ");
+            }
         }
         return sequenceConfig;
     }
@@ -134,7 +139,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
      * @throws FrameworkException
      */
     public SequenceConfig getSequence(ServiceProvider serviceProvider, String tenantDomain,
-                                      AuthenticationStep[] authenticationSteps) throws FrameworkException {
+            AuthenticationStep[] authenticationSteps) throws FrameworkException {
 
         if (serviceProvider == null) {
             throw new FrameworkException("ServiceProvider cannot be null");
@@ -217,7 +222,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     }
 
     protected void loadFederatedAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig,
-                                               String tenantDomain) throws FrameworkException {
+            String tenantDomain) throws FrameworkException {
 
         IdentityProvider[] federatedIDPs = authenticationStep.getFederatedIdentityProviders();
 

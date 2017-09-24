@@ -44,7 +44,7 @@ public class HasRoleFunction implements IsExistsStringFunction {
     public Boolean contains(AuthenticationContext context, String roleName) {
         boolean result = false;
 
-        AuthenticatedUser authenticatedUser = context.getLastAuthenticatedUser();
+        AuthenticatedUser authenticatedUser = context.getCurrentSubject();
         if (authenticatedUser == null) {
             return false;
         }

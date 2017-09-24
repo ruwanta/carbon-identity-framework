@@ -16,8 +16,8 @@
   ~ under the License.
   -->
 <ServiceProvider>
-    <ApplicationID>1</ApplicationID>
-    <ApplicationName>default</ApplicationName>
+    <ApplicationID>1000</ApplicationID>
+    <ApplicationName>js-app-1000</ApplicationName>
     <Description>Default Service Provider</Description>
     <InboundAuthenticationConfig>
         <InboundAuthenticationRequestConfigs>
@@ -80,8 +80,7 @@
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript"><![CDATA[
-
-fn1  = function (context) {
+function fn1(context) {
   return "acr1";
 }
 

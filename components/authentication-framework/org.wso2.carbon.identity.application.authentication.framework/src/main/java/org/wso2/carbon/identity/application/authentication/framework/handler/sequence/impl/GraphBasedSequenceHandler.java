@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.MDC;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -31,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.DynamicDecisionNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.EndStep;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ProgressNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -45,7 +47,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
     private static final String PROP_CURRENT_NODE = "Adaptive.Auth.Current.Graph.Node";
-    private volatile boolean isInitialized = false;
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
@@ -53,6 +54,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (log.isDebugEnabled()) {
             log.debug("Executing the Step Based Authentication...");
         }
+        MDC.put("appId", context.getServiceProviderName());
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
@@ -88,17 +90,29 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
         } else if (currentNode instanceof StepConfigGraphNode) {
-            isInterrupt = handleAuthenticationStep(request, response, context, sequenceConfig,
-                    (StepConfigGraphNode) currentNode);
-            if (!isInterrupt) {
-                gotoToNextNode(context, sequenceConfig, currentNode);
+            try {
+                StepConfigGraphNode stepConfigGraphNode = (StepConfigGraphNode) currentNode;
+                MDC.put("stepId", stepConfigGraphNode.getName());
+                isInterrupt = handleAuthenticationStep(request, response, context, sequenceConfig, stepConfigGraphNode);
+                if (!isInterrupt) {
+                    gotoToNextNode(context, sequenceConfig, currentNode);
+                }
+            } finally {
+                MDC.remove("stepId");
             }
         } else if (currentNode instanceof EndStep) {
             handleEndOfSequence(request, response, context, sequenceConfig);
         } else if (currentNode instanceof FailNode) {
             handleAuthFail(request, response, context, sequenceConfig, currentNode);
+        } else if (currentNode instanceof ProgressNode) {
+            handleProgression(request, response, context, sequenceConfig, (ProgressNode) currentNode);
         }
         return isInterrupt;
+    }
+
+    private void handleProgression(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationContext context, SequenceConfig sequenceConfig, ProgressNode currentNode) {
+
     }
 
     private void gotoToNextNode(AuthenticationContext context, SequenceConfig sequenceConfig,
@@ -219,9 +233,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
         FrameworkUtils.getStepHandler().handle(request, response, context);
 
-        AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
+        AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request
+                .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
 
-        if (flowStatus == AuthenticatorFlowStatus.SUCCESS_COMPLETED ) {
+        if (flowStatus == AuthenticatorFlowStatus.SUCCESS_COMPLETED) {
             context.setRequestAuthenticated(true);
         } else {
             stepConfig.setSubjectAttributeStep(false);
@@ -248,20 +263,19 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             return;
         }
         AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
-       if(flowStatus != null) {
-           switch (flowStatus) {
-               case SUCCESS_COMPLETED:
-                   executeFunction("success", dynamicDecisionNode, context);
-                   break;
-               case FAIL_COMPLETED:
-                   executeFunction("fail", dynamicDecisionNode, context);
-                   break;
-               case FALLBACK:
-                   executeFunction("fallback", dynamicDecisionNode, context);
-                   break;
-           }
-       }
-
+        if (flowStatus != null) {
+            switch (flowStatus) {
+            case SUCCESS_COMPLETED:
+                executeFunction("success", dynamicDecisionNode, context);
+                break;
+            case FAIL_COMPLETED:
+                executeFunction("fail", dynamicDecisionNode, context);
+                break;
+            case FALLBACK:
+                executeFunction("fallback", dynamicDecisionNode, context);
+                break;
+            }
+        }
 
         AuthGraphNode nextNode = dynamicDecisionNode.getDefaultEdge();
         context.setProperty(PROP_CURRENT_NODE, nextNode);
@@ -270,7 +284,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode, AuthenticationContext context) {
         Object fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         if (fn instanceof AuthenticationDecisionEvaluator2) {
-            ((AuthenticationDecisionEvaluator2)fn).evaluate(context);
+            ((AuthenticationDecisionEvaluator2) fn).evaluate(context);
         }
     }
 
@@ -284,7 +298,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         String nextOutcome = null;
 
         AuthenticationDecisionEvaluator2 evaluator2 = decisionPointNode.getAuthenticationDecisionEvaluator();
-        if(evaluator2 != null) {
+        if (evaluator2 != null) {
             nextOutcome = evaluator2.evaluate(context);
             if (log.isDebugEnabled()) {
                 log.debug("Outcome returned as : " + nextOutcome + " by the evaluator : " + evaluator2);
@@ -299,8 +313,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             } else {
                 String errorMessage = String
                         .format("Could not find the next outcome node for the outcome decision result : %s,"
-                                        + "  at Decision : %s, on Service Provider: %s", nextOutcome,
-                                evaluator2, sequenceConfig.getApplicationId());
+                                        + "  at Decision : %s, on Service Provider: %s", nextOutcome, evaluator2,
+                                sequenceConfig.getApplicationId());
 
                 log.error(errorMessage);
             }

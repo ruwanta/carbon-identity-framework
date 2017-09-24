@@ -80,11 +80,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     //Adaptive Authentication control and status
     private List<AuthHistory> authenticationStepHistory = new ArrayList<>();
     private List<String> requestedAcr;
-    private AcrRule acrRule = AcrRule.EXACT;
     private String selectedAcr;
 
     /** The user/subject known at the latest authentication step */
-    private AuthenticatedUser lastAuthenticatedUser;
+    private AuthenticatedUser currentSubject;
 
     /** subject should be set by each authenticator */
     private AuthenticatedUser subject;
@@ -164,7 +163,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     public void setSubject(AuthenticatedUser subject) {
         this.subject = subject;
         if(subject != null) {
-            lastAuthenticatedUser = subject;
+            currentSubject = subject;
         }
     }
 
@@ -385,14 +384,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
         return Collections.unmodifiableList(authenticationStepHistory);
     }
 
-    public AcrRule getAcrRule() {
-        return acrRule;
-    }
-
-    public void setAcrRule(AcrRule acrRule) {
-        this.acrRule = acrRule;
-    }
-
     public String getSelectedAcr() {
         return selectedAcr;
     }
@@ -421,7 +412,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * 
      * @return AuthenticatedUser which is assigned to the context last. Null if no previous step could find a user.
      */
-    public AuthenticatedUser getLastAuthenticatedUser() {
-        return lastAuthenticatedUser;
+    public AuthenticatedUser getCurrentSubject() {
+        return currentSubject;
     }
 }

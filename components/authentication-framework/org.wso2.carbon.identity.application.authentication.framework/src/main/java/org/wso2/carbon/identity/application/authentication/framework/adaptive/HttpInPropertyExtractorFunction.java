@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,16 +16,24 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.handler.step;
+package org.wso2.carbon.identity.application.authentication.framework.adaptive;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-public interface StepHandler extends ProgressiveHandler {
+/**
+ * Definition for HTTP request attribute/properties extractor.
+ * This is an extension function to be called by adaptive engine to extract HTTP request attributes.
+ * e.g. Headers, Host
+ */
+@FunctionalInterface
+public interface HttpInPropertyExtractorFunction {
 
-    public void handle(HttpServletRequest request, HttpServletResponse response,
-                       AuthenticationContext context) throws FrameworkException;
+    /**
+     * Handles the HTTP request and attach the necessary attributes to authentication context
+     * @param authenticationContext
+     * @param request
+     */
+    void handle(AuthenticationContext authenticationContext, HttpServletRequest request);
 }

@@ -127,6 +127,7 @@ public abstract class FrameworkConstants {
          * Configuration name for enabling or disabling the tenant list dropdown
          */
         public static final String QNAME_TENANT_DOMAIN_DROPDOWN_ENABLED = "TenantDomainDropDownEnabled";
+        public static final String QNAME_SEQUENCE_LOADER = "SequenceLoader";
         public static final String QNAME_EXT_REQ_COORDINATOR = "RequestCoordinator";
         public static final String QNAME_EXT_AUTH_REQ_HANDLER = "AuthenticationRequestHandler";
         public static final String QNAME_EXT_LOGOUT_REQ_HANDLER = "LogoutRequestHandler";

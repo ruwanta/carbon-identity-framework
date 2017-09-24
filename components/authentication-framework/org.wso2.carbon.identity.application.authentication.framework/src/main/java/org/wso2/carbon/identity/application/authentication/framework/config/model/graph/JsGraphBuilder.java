@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator2;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCache;
@@ -39,6 +40,7 @@ import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 
 /**
  * Translate the authentication graph config to runtime model.
@@ -101,6 +103,7 @@ public class JsGraphBuilder {
                 //TODO: Think about keeping a cached compiled scripts. May be the last updated timestamp.
                 compiledScript = compilable.compile(script);
             }
+            Bindings b = new SimpleBindings();
             Bindings bindings = engine.createBindings();
             bindings.put("executeStep", (Consumer<Map>) this::executeStep);
             bindings.put("sendError", (Consumer<Map>) this::sendError);

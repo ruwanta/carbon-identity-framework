@@ -50,7 +50,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -209,8 +208,24 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @throws IOException
      * @throws
      */
-    protected AuthenticationContext initializeFlow(HttpServletRequest request,
-                                                   HttpServletResponse response) throws FrameworkException {
+    protected AuthenticationContext initializeFlow(HttpServletRequest request, HttpServletResponse response)
+            throws FrameworkException {
+        AuthenticationContext context = new AuthenticationContext();
+        return initializeFlow(request, response, context);
+    }
+
+    /**
+     * Handles the initial request (from the calling servlet)
+     *
+     * @param request
+     * @param response
+     * @param context Pre-Initialized Authentication context
+     * @throws ServletException
+     * @throws IOException
+     * @throws
+     */
+    protected AuthenticationContext initializeFlow(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug("Initializing the flow");
@@ -235,7 +250,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         String tenantDomain = getTenantDomain(request);
 
         // Store the request data sent by the caller
-        AuthenticationContext context = new AuthenticationContext();
         context.setCallerSessionKey(callerSessionDataKey);
         context.setCallerPath(callerPath);
         context.setRequestType(requestType);

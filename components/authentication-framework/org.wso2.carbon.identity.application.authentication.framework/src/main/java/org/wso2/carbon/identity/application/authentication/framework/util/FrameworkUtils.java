@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -70,6 +71,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ExtensionHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
@@ -274,9 +276,21 @@ public class FrameworkUtils {
         return context;
     }
 
+    public static SequenceLoader getSequenceLoader() {
+        SequenceLoader sequenceLoader = ExtensionHolder.getInstance()
+                .getExtension(FrameworkConstants.Config.QNAME_SEQUENCE_LOADER);
+
+        return sequenceLoader;
+    }
+
     public static RequestCoordinator getRequestCoordinator() {
 
-        RequestCoordinator requestCoordinator = null;
+        RequestCoordinator requestCoordinator = ExtensionHolder.getInstance()
+                .getExtension(FrameworkConstants.Config.QNAME_EXT_REQ_COORDINATOR);
+        if(requestCoordinator != null) {
+            return requestCoordinator;
+        }
+
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_REQ_COORDINATOR);
 
@@ -294,7 +308,12 @@ public class FrameworkUtils {
      */
     public static AuthenticationRequestHandler getAuthenticationRequestHandler() {
 
-        AuthenticationRequestHandler authenticationRequestHandler = null;
+        AuthenticationRequestHandler authenticationRequestHandler = ExtensionHolder.getInstance()
+                .getExtension(FrameworkConstants.Config.QNAME_EXT_AUTH_REQ_HANDLER);
+        if(authenticationRequestHandler != null) {
+            return authenticationRequestHandler;
+        }
+
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_AUTH_REQ_HANDLER);
 
@@ -331,7 +350,13 @@ public class FrameworkUtils {
      */
     public static StepBasedSequenceHandler getStepBasedSequenceHandler() {
 
-        StepBasedSequenceHandler stepBasedSequenceHandler = null;
+        StepBasedSequenceHandler stepBasedSequenceHandler = ExtensionHolder.getInstance()
+                .getExtension(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
+
+        if(stepBasedSequenceHandler != null) {
+            return stepBasedSequenceHandler;
+        }
+
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
 

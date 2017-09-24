@@ -16,8 +16,8 @@
   ~ under the License.
   -->
 <ServiceProvider>
-    <ApplicationID>1</ApplicationID>
-    <ApplicationName>default</ApplicationName>
+    <ApplicationID>1000</ApplicationID>
+    <ApplicationName>js-app-1000</ApplicationName>
     <Description>Default Service Provider</Description>
     <InboundAuthenticationConfig>
         <InboundAuthenticationRequestConfigs>
@@ -79,9 +79,9 @@
                 <AttributeStep>false</AttributeStep>
             </AuthenticationStep>
         </AuthenticationSteps>
-        <AuthenticationScript type="application/javascript"><![CDATA[
+        <AuthenticationScript language="application/javascript"><![CDATA[
 var jsFn1 = function(context, a) {
-    log.debug('Test fn1 '+a);
+    Log.debug('Test fn1 '+a);
 }
 
 function(context) {
