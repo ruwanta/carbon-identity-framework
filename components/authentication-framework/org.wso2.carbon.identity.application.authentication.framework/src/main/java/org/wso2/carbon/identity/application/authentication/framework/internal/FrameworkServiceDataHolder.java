@@ -21,6 +21,10 @@ package org.wso2.carbon.identity.application.authentication.framework.internal;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
@@ -31,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FrameworkServiceDataHolder {
+
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
 
     private BundleContext bundleContext = null;
@@ -43,6 +48,9 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private AuthenticationDataPublisher authnDataPublisherProxy = null;
+    private SequenceLoader sequenceLoader = null;
+    private JsGraphBuilderFactory JsGraphBuilderFactory;
+    private AuthenticationMethodNameTranslator authenticationMethodNameTranslator;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -69,6 +77,14 @@ public class FrameworkServiceDataHolder {
         this.realmService = realmService;
     }
 
+    /**
+     *
+     * @return
+     * @throws FrameworkException
+     * @Deprecated The usage of bundle context outside of the component should never be needed. Component should
+     * provide necessary wiring for any place which require the BundleContext.
+     */
+    @Deprecated
     public BundleContext getBundleContext() {
         return bundleContext;
     }
@@ -117,4 +133,29 @@ public class FrameworkServiceDataHolder {
         this.authnDataPublisherProxy = authnDataPublisherProxy;
     }
 
+    public SequenceLoader getSequenceLoader() {
+        return sequenceLoader;
+    }
+
+    public void setSequenceLoader(SequenceLoader sequenceLoader) {
+        this.sequenceLoader = sequenceLoader;
+    }
+
+    public AuthenticationMethodNameTranslator getAuthenticationMethodNameTranslator() {
+        return authenticationMethodNameTranslator;
+    }
+
+    public void setAuthenticationMethodNameTranslator(
+            AuthenticationMethodNameTranslator authenticationMethodNameTranslator) {
+        this.authenticationMethodNameTranslator = authenticationMethodNameTranslator;
+    }
+
+    public org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory getJsGraphBuilderFactory() {
+        return JsGraphBuilderFactory;
+    }
+
+    public void setJsGraphBuilderFactory(
+            org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
+        JsGraphBuilderFactory = jsGraphBuilderFactory;
+    }
 }

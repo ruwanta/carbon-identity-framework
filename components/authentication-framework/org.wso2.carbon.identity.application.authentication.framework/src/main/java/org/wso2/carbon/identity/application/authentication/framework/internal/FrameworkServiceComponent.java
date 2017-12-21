@@ -33,10 +33,15 @@ import org.osgi.service.http.HttpService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
@@ -44,9 +49,11 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.AuthenticationMethodNameTranslatorImpl;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
+import org.wso2.carbon.identity.application.authentication.framework.store.JavascriptCacheImpl;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -60,9 +67,9 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import javax.servlet.Servlet;
 import java.util.Collections;
 import java.util.List;
-import javax.servlet.Servlet;
 
 /**
  * OSGi declarative services component which handled registration and unregistration of FrameworkServiceComponent.
@@ -81,6 +88,9 @@ public class FrameworkServiceComponent {
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
+    private JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
+    private JsGraphBuilderFactory jsGraphBuilderFactory;
+    private JavascriptCacheImpl javascriptCache;
 
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -118,6 +128,14 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
     }
 
+    /**
+     *
+     * @return
+     * @throws FrameworkException
+     * @Deprecated The usage of bundle context outside of the component should never be needed. Component should
+     * provide necessary wiring for any place which require the BundleContext.
+     */
+    @Deprecated
     public static BundleContext getBundleContext() throws FrameworkException {
         BundleContext bundleContext = FrameworkServiceDataHolder.getInstance().getBundleContext();
         if (bundleContext == null) {
@@ -139,7 +157,7 @@ public class FrameworkServiceComponent {
         BundleContext bundleContext = ctxt.getBundleContext();
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
-        ;
+        bundleContext.registerService(JsFunctionRegistry.class, jsFunctionRegistry, null);
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -152,6 +170,12 @@ public class FrameworkServiceComponent {
                           "enabled.");
             }
         }
+        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
+        authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
+        bundleContext
+                .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
+        FrameworkServiceDataHolder.getInstance()
+                .setAuthenticationMethodNameTranslator(authenticationMethodNameTranslator);
 
         // Register Common servlet
         Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
@@ -178,6 +202,16 @@ public class FrameworkServiceComponent {
                 FrameworkLoginResponseFactory());
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
                 FrameworkLogoutResponseFactory());
+        javascriptCache = new JavascriptCacheImpl();
+        jsGraphBuilderFactory = new JsGraphBuilderFactory();
+        jsGraphBuilderFactory.setJsFunctionRegistry(jsFunctionRegistry);
+        jsGraphBuilderFactory.setJavascriptCache(javascriptCache);
+        jsGraphBuilderFactory.init();
+        UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
+        uiBasedConfigurationLoader.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+        uiBasedConfigurationLoader.setJsFunctionRegistrar(jsFunctionRegistry);
+        FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
+        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(jsGraphBuilderFactory);
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
@@ -420,4 +454,5 @@ public class FrameworkServiceComponent {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
         }
     }
+
 }

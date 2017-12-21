@@ -352,6 +352,15 @@
             </xs:sequence>
          </xs:complexType>
       </xs:schema>
+      <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://script.model.common.application.identity.carbon.wso2.org/xsd">
+         <xs:complexType name="AuthenticationScriptConfig">
+            <xs:sequence>
+               <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
+               <xs:element minOccurs="0" name="isEnable" type="xs:boolean"/>
+               <xs:element minOccurs="0" name="language" nillable="true" type="xs:string"/>
+            </xs:sequence>
+         </xs:complexType>
+      </xs:schema>
    </wsdl:types>
    <wsdl:message name="getAllLocalClaimUrisRequest">
       <wsdl:part name="parameters" element="ns1:getAllLocalClaimUris"/>
@@ -803,13 +812,13 @@
    </wsdl:binding>
    <wsdl:service name="IdentityApplicationManagementService">
       <wsdl:port name="IdentityApplicationManagementServiceHttpsSoap11Endpoint" binding="tns:IdentityApplicationManagementServiceSoap11Binding">
-         <soap:address location="https://localhost:9453/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsSoap11Endpoint/"/>
+         <soap:address location="https://localhost:9443/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsSoap11Endpoint/"/>
       </wsdl:port>
       <wsdl:port name="IdentityApplicationManagementServiceHttpsSoap12Endpoint" binding="tns:IdentityApplicationManagementServiceSoap12Binding">
-         <soap12:address location="https://localhost:9453/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsSoap12Endpoint/"/>
+         <soap12:address location="https://localhost:9443/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsSoap12Endpoint/"/>
       </wsdl:port>
       <wsdl:port name="IdentityApplicationManagementServiceHttpsEndpoint" binding="tns:IdentityApplicationManagementServiceHttpBinding">
-         <http:address location="https://localhost:9453/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsEndpoint/"/>
+         <http:address location="https://localhost:9443/services/IdentityApplicationManagementService.IdentityApplicationManagementServiceHttpsEndpoint/"/>
       </wsdl:port>
    </wsdl:service>
 </wsdl:definitions>

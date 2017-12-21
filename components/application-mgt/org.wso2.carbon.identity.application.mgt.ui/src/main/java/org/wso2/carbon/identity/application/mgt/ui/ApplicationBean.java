@@ -889,7 +889,7 @@ public class ApplicationBean {
      * @param request
      */
     public void updateOutBoundAuthenticationConfig(HttpServletRequest request) {
-
+        
         String[] authSteps = request.getParameterValues("auth_step");
 
         if (authSteps != null && authSteps.length > 0) {
@@ -989,14 +989,32 @@ public class ApplicationBean {
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(new LocalAndOutboundAuthenticationConfig());
             }
-
             if (CollectionUtils.isNotEmpty(authStepList)) {
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationSteps(
-                        authStepList.toArray(new AuthenticationStep[authStepList.size()]));
+
+                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+                localAndOutboundAuthenticationConfig.setAuthenticationSteps(authStepList.toArray(new AuthenticationStep[authStepList.size()]));
             }
-
         }
+    }
 
+    /**
+     * @param request
+     */
+    public void conditionalAuthentication(HttpServletRequest request) {
+
+        AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+        String flawByScript = request.getParameter("scriptTextarea");
+
+        if (request.getParameter("enableScript") == null) {
+            authenticationScriptConfig.setIsEnable(false);
+        } else authenticationScriptConfig.setIsEnable(true);
+
+        if (StringUtils.isNotBlank(flawByScript)) {
+
+            authenticationScriptConfig.setContent(flawByScript);
+            localAndOutboundAuthenticationConfig.setAuthenticationScriptConfig(authenticationScriptConfig);
+        }
     }
 
     /**

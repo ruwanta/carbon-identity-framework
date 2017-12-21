@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
@@ -290,8 +291,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                                                                sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
+                        .merge(sessionContext.getSessionAuthHistory().getHistory(),
+                                context.getAuthenticationStepHistory()));
+                if(context.getSelectedAcr() != null) {
+                    sessionContext.getSessionAuthHistory().setSelectedAcrValue(context.getSelectedAcr());
+                }
                 long updatedSessionTime = System.currentTimeMillis();
-                if(!context.isPreviousAuthTime()) {
+                if (!context.isPreviousAuthTime()) {
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 }
 
@@ -366,6 +373,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
+                sessionContext.getSessionAuthHistory().resetHistory(
+                        AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
+                        context.getAuthenticationStepHistory()));
+                if(context.getSelectedAcr() != null) {
+                    sessionContext.getSessionAuthHistory().setSelectedAcrValue(context.getSelectedAcr());
+                }
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
                 String applicationTenantDomain = context.getTenantDomain();

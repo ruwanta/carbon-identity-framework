@@ -48,7 +48,9 @@ public class ExternalIdPConfig implements Serializable {
     }
 
     /**
-     * @param identityProvider
+     * Constructs with the known IdP.
+     *
+     * @param identityProvider  The IDP which is used to generate the IdPConfig.
      */
     public ExternalIdPConfig(IdentityProvider identityProvider) {
         this.identityProvider = identityProvider;
@@ -57,16 +59,18 @@ public class ExternalIdPConfig implements Serializable {
         roleConfiguration = identityProvider.getPermissionAndRoleConfig();
         justInTimeProConfig = identityProvider.getJustInTimeProvisioningConfig();
 
-        RoleMapping[] mappings = roleConfiguration.getRoleMappings();
+        if(roleConfiguration != null) {
+            RoleMapping[] mappings = roleConfiguration.getRoleMappings();
 
-        if (mappings != null && mappings.length > 0) {
-            for (RoleMapping roleMapping : mappings) {
-                if (StringUtils.isNotEmpty(roleMapping.getLocalRole().getUserStoreId())) {
-                    this.roleMappings.put(roleMapping.getRemoteRole(), UserCoreUtil.addDomainToName(roleMapping
-                            .getLocalRole().getLocalRoleName(), roleMapping.getLocalRole().getUserStoreId()));
-                } else {
-                    this.roleMappings.put(roleMapping.getRemoteRole(), roleMapping.getLocalRole()
-                            .getLocalRoleName());
+            if (mappings != null && mappings.length > 0) {
+                for (RoleMapping roleMapping : mappings) {
+                    if (StringUtils.isNotEmpty(roleMapping.getLocalRole().getUserStoreId())) {
+                        this.roleMappings.put(roleMapping.getRemoteRole(), UserCoreUtil
+                                .addDomainToName(roleMapping.getLocalRole().getLocalRoleName(),
+                                        roleMapping.getLocalRole().getUserStoreId()));
+                    } else {
+                        this.roleMappings.put(roleMapping.getRemoteRole(), roleMapping.getLocalRole().getLocalRoleName());
+                    }
                 }
             }
         }
