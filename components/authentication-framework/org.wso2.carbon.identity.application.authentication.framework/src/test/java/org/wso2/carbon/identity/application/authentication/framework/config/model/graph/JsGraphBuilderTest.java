@@ -23,14 +23,13 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.sequence.JsSequenceHandlerRunner;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 /**
  * Tests for graph builder with Javascript.
@@ -40,17 +39,20 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
     private JsGraphBuilderFactory jsGraphBuilderFactory;
+    private JsSequenceHandlerRunner sequenceHandlerRunner;
 
     @BeforeTest
     public void setUp() {
+
         jsGraphBuilderFactory = new JsGraphBuilderFactory();
         jsGraphBuilderFactory.init();
+        sequenceHandlerRunner = new JsSequenceHandlerRunner();
     }
 
     public void testCreate_DirectJava_InvalidStepId() throws Exception {
 
-        ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("js-sp-1.xml", this);
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
@@ -62,8 +64,8 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
     public void testCreate_DirectJava() throws Exception {
 
-        ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("js-sp-1.xml", this);
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
@@ -81,11 +83,12 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
     }
 
     public void testCreate_Javascript() throws Exception {
+
         String script = "function onInitialRequest(context) { executeStep(1, { onSuccess : function(context) {"
                 + "executeStep({id :'2'});}})};";
 
-        ServiceProvider sp1 = getTestServiceProvider("js-sp-1.xml");
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("js-sp-1.xml", this);
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
 
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());

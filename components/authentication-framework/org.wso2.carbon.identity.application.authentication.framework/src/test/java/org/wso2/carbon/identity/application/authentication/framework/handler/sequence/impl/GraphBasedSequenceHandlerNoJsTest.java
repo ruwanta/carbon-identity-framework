@@ -41,21 +41,20 @@ public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandler
     @Test(dataProvider = "noJsDataProvider")
     public void testHandleStaticSequence(String spFileName, int authHistoryCount) throws
             Exception {
-        ServiceProvider sp1 = getTestServiceProvider(spFileName);
 
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource(spFileName, this);
 
-        SequenceConfig sequenceConfig = configurationLoader
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
+
+        SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
-
+        HttpServletRequest req = sequenceHandlerRunner.createHttpServletRequest();
+        HttpServletResponse resp = sequenceHandlerRunner.createHttpServletResponse();
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
-        graphBasedSequenceHandler.handle(req, resp, context);
+        sequenceHandlerRunner.handle(req, resp, context);
 
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
@@ -64,6 +63,7 @@ public class GraphBasedSequenceHandlerNoJsTest extends GraphBasedSequenceHandler
 
     @DataProvider(name = "noJsDataProvider")
     public Object[][] getIdpMappedUserRolesData() {
+
         return new Object[][]{
                 {"no-js-sp-1.xml", 3},
                 {"disabled-js-sp-1.xml", 3},

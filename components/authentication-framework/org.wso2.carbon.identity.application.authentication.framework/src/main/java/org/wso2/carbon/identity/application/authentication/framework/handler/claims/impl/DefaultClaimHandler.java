@@ -664,8 +664,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         UserRealm realm;
         try {
             realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    FrameworkServiceComponent.getRegistryService(),
-                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+                    FrameworkServiceDataHolder.getInstance().getRegistryService(),
+                    FrameworkServiceDataHolder.getInstance().getRealmService(), tenantDomain);
         } catch (CarbonException e) {
             throw new FrameworkException("Error occurred while retrieving the Realm for " +
                                          tenantDomain + " to handle local claims", e);

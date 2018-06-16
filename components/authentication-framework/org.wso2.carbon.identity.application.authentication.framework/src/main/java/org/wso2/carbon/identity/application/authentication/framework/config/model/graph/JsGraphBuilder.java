@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 import jdk.nashorn.api.scripting.JSObject;
+import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -125,7 +126,7 @@ public class JsGraphBuilder {
             Bindings globalBindings = engine.getBindings(ScriptContext.GLOBAL_SCOPE);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
-                this::sendError);
+                    this::sendError);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
             if (jsFunctionRegistrar != null) {
                 Map<String, Object> functionMap = jsFunctionRegistrar
@@ -330,7 +331,6 @@ public class JsGraphBuilder {
      * Adds all the event listeners to the decision node.
      *
      * @param eventsMap Map of events and event handler functions, which is handled by this execution.
-     * @return created Dynamic Decision node.
      */
     private static void addEventListeners(DynamicDecisionNode decisionNode,
                                           Map<String, Object> eventsMap) {
@@ -357,7 +357,7 @@ public class JsGraphBuilder {
      * New node may be cloned if needed to attach on multiple branches.
      *
      * @param destination Current node.
-     * @param newNode New node to attach.
+     * @param newNode     New node to attach.
      */
     private static void infuse(AuthGraphNode destination, AuthGraphNode newNode) {
 
@@ -380,7 +380,7 @@ public class JsGraphBuilder {
      * The new node is added to each leaf node of the Tree structure given in the destination node.
      * Effectively this will join all the leaf nodes to new node, converting the tree into a graph.
      *
-     * @param baseNode Base node.
+     * @param baseNode     Base node.
      * @param nodeToAttach Node to attach.
      */
     private static void attachToLeaf(AuthGraphNode baseNode, AuthGraphNode nodeToAttach) {
@@ -460,9 +460,9 @@ public class JsGraphBuilder {
                     Bindings globalBindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
                     //Now re-assign the executeStep function to dynamic evaluation
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
-                            (StepExecutor) JsGraphBuilder::executeStepInAsyncEvent);
+                                       (StepExecutor) JsGraphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
-                        (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
+                                       (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()
                             .getJsFunctionRegistry();
                     if (jsFunctionRegistry != null) {
@@ -487,8 +487,19 @@ public class JsGraphBuilder {
 
                 } catch (Throwable e) {
                     //We need to catch all the javascript errors here, then log and handle.
-                    log.error("Error in executing the javascript for service provider : " + authenticationContext
-                            .getServiceProviderName() + ", Javascript Fragment : \n" + jsFunction.getSource(), e);
+                    //We catch any error from Jacascript engine and provide a detailed error here.
+                    String error = "Authentication script execution error. Application/Service Provider name : \"" +
+                            authenticationContext.getServiceProviderName() + "\".\nReason :" + e
+                            .getLocalizedMessage() + "\nOn Script\n" + jsFunction
+                            .getSource();
+                    if (e instanceof NashornException) {
+                        //We do not want to throw the full nashorn stacktrace,
+                        //but displaying all information needed to find the root cause.
+                        NashornException nashornException = (NashornException) e;
+                        error += "\nAt location (row, col) : ( " +
+                                nashornException.getLineNumber() + "," + nashornException.getColumnNumber() + ")";
+                    }
+                    log.error(error);
                     AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
                             .getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
                     FailNode failNode = new FailNode();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,12 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework;
+package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.api;
 
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.common.model.Property;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class MockAuthenticator implements ApplicationAuthenticator {
 
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
+                                           AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
 
         if (subjectCallback != null) {
             context.setSubject(subjectCallback.getAuthenticatedUser(context));

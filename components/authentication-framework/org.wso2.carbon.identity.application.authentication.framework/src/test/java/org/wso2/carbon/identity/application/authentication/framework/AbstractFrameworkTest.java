@@ -18,31 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.builder.StAXOMBuilder;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.util.UUID;
-import javax.xml.stream.XMLStreamException;
-
 public class AbstractFrameworkTest {
 
-    protected ServiceProvider getTestServiceProvider(String spFileName) throws XMLStreamException {
-        InputStream inputStream = this.getClass().getResourceAsStream(spFileName);
-        OMElement documentElement = new StAXOMBuilder(inputStream).getDocumentElement();
-        return ServiceProvider.build(documentElement);
-    }
-
-    protected AuthenticationContext getAuthenticationContext(ServiceProvider serviceProvider) {
-        AuthenticationContext authenticationContext = new AuthenticationContext();
-        authenticationContext.setServiceProviderName(serviceProvider.getApplicationName());
-        authenticationContext.setTenantDomain("test_domain");
-        authenticationContext.setCurrentStep(1);
-        authenticationContext.setContextIdentifier(UUID.randomUUID().toString());
-        return authenticationContext;
-    }
 }

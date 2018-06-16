@@ -38,9 +38,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 
 /**
@@ -51,11 +49,11 @@ public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequen
 
     public void testHandleClaimHandling() throws Exception {
 
-        ServiceProvider sp1 = getTestServiceProvider("js-sp-4-claim.xml");
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("js-sp-4-claim.xml", this);
 
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
 
-        SequenceConfig sequenceConfig = configurationLoader
+        SequenceConfig sequenceConfig = sequenceHandlerRunner
             .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
@@ -87,7 +85,7 @@ public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequen
             return null;
         }).when(mockUserStoreManager).setUserClaimValues(anyString(), anyMap(), anyString());
 
-        graphBasedSequenceHandler.handle(req, resp, context);
+        sequenceHandlerRunner.handle(req, resp, context);
 
         FrameworkServiceDataHolder.getInstance().setRealmService(currentRealmService);
         assertEquals(claimValue[0], "Test User by Javascript");

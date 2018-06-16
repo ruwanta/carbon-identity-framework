@@ -102,6 +102,12 @@ public class FrameworkServiceComponent {
     private JsGraphBuilderFactory jsGraphBuilderFactory;
     private ConsentMgtPostAuthnHandler consentMgtPostAuthnHandler = new ConsentMgtPostAuthnHandler();
 
+    /**
+     * This is OSGI component. Directly accessing this is not recommended.
+     * Please use  <code>FrameworkServiceDataHolder.getInstance().getRealmService()</code>
+     * @return
+     */
+    @Deprecated
     public static RealmService getRealmService() {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
     }
@@ -120,6 +126,12 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
     }
 
+    /**
+     * This is OSGI component. Directly accessing this is not recommended.
+     * Please use  <code>FrameworkServiceDataHolder.getInstance().getRegistryService()</code>
+     * @return
+     */
+    @Deprecated
     public static RegistryService getRegistryService() {
         return FrameworkServiceDataHolder.getInstance().getRegistryService();
     }

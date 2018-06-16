@@ -32,11 +32,8 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Consumer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import static org.mockito.Mockito.mock;
 
 @Test
 public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHandlerAbstractTest {
@@ -48,22 +45,22 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistrar);
         FrameworkServiceDataHolder.getInstance().setLongWaitStatusStoreService(new LongWaitStatusStoreService());
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "testLongWaitCall",
-                new AsyncAnalyticsCbFunctionImpl());
+                                     new AsyncAnalyticsCbFunctionImpl());
 
-        ServiceProvider sp1 = getTestServiceProvider("js-sp-longwait-1.xml");
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("js-sp-longwait-1.xml", this);
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
         context.setSessionIdentifier("1234");
-        SequenceConfig sequenceConfig = configurationLoader
+        SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
         HttpServletRequest req = createMockHttpServletRequest();
 
-        HttpServletResponse resp = mock(HttpServletResponse.class);
+        HttpServletResponse resp = createMockHttpServletResponse();
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
-        graphBasedSequenceHandler.handle(req, resp, context);
+        sequenceHandlerRunner.handle(req, resp, context);
 
     }
 

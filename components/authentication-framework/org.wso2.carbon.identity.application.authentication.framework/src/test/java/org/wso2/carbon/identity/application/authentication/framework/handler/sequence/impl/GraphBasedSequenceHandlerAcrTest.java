@@ -42,26 +42,26 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
     @Test(dataProvider = "staticAcrDataProvider")
     public void testHandleStaticJavascriptAcr(String spFileName, String[] acrArray, int authHistoryCount) throws
             Exception {
-        ServiceProvider sp1 = getTestServiceProvider(spFileName);
 
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource(spFileName, this);
+
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
         if (acrArray != null) {
             for (String acr : acrArray) {
                 context.addRequestedAcr(acr);
             }
         }
 
-        SequenceConfig sequenceConfig = configurationLoader
-                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+        SequenceConfig sequenceConfig =
+                sequenceHandlerRunner.getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
+        HttpServletRequest req = createMockHttpServletRequest();
+        HttpServletResponse resp = createMockHttpServletResponse();
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
-        graphBasedSequenceHandler.handle(req, resp, context);
+        sequenceHandlerRunner.handle(req, resp, context);
 
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
@@ -70,6 +70,7 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
 
     @DataProvider(name = "staticAcrDataProvider")
     public Object[][] getStaticAcrRolesData() {
+
         return new Object[][]{
                 {"js-sp-1.xml", new String[]{"acr1"}, 1},
                 {"js-sp-1.xml", new String[]{"acr2"}, 2},
@@ -79,41 +80,42 @@ public class GraphBasedSequenceHandlerAcrTest extends GraphBasedSequenceHandlerA
 
     @Test(expectedExceptions = FrameworkException.class)
     public void testHandleIncorrectJavascriptAcr() throws Exception {
-        ServiceProvider sp1 = getTestServiceProvider("incorrect-js-sp-1.xml");
 
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("incorrect-js-sp-1.xml", this);
 
-        SequenceConfig sequenceConfig = configurationLoader
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
+
+        SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
+        HttpServletRequest req = createMockHttpServletRequest();
+        HttpServletResponse resp = createMockHttpServletResponse();
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
-        graphBasedSequenceHandler.handle(req, resp, context);
+        sequenceHandlerRunner.handle(req, resp, context);
 
     }
 
     @Test(expectedExceptions = FrameworkException.class)
     public void testHandleIncorrectFunctionJavascriptAcr() throws Exception {
-        ServiceProvider sp1 = getTestServiceProvider("incorrect-function-js-sp-1.xml");
 
-        AuthenticationContext context = getAuthenticationContext(sp1);
+        ServiceProvider sp1 = sequenceHandlerRunner.loadServiceProviderFromResource("incorrect-function-js-sp-1.xml",
+                                                                                    this);
 
-        SequenceConfig sequenceConfig = configurationLoader
+        AuthenticationContext context = sequenceHandlerRunner.createAuthenticationContext(sp1);
+
+        SequenceConfig sequenceConfig = sequenceHandlerRunner
                 .getSequenceConfig(context, Collections.emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
 
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
+        HttpServletRequest req = createMockHttpServletRequest();
+        HttpServletResponse resp = createMockHttpServletResponse();
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
-        graphBasedSequenceHandler.handle(req, resp, context);
+        sequenceHandlerRunner.handle(req, resp, context);
 
     }
 }
