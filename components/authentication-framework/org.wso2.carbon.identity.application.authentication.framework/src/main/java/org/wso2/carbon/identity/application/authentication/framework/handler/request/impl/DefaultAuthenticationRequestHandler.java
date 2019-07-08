@@ -486,6 +486,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      * @return DateTime object of the SSO session created. Will return current time if it can not be inferred.
      */
     private DateTime calculateCreatedTime(SessionContext sessionContext) {
+
         Object createdTsObject = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
         if(createdTsObject != null) {
             long createdTimeLong = Long.parseLong(createdTsObject.toString());
